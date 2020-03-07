@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title><%= title %></title>
+  <link rel='stylesheet' href='/stylesheets/style.css' />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<style>
+  .new_url {
+    width: 355px;
+    height: auto;
+  }
+</style>
+
+<body>
+  <form action="/upload" enctype="multipart/form-data" method="POST">
+    <input type="file" id="fileInput" name="fileInput" />
+    <input type="button" id="button" value="Upload Photo" />
+    <br /><br />
+    <img class="new_url" src="" alt="">
+  </form>
+</body>
+
+<script>
+  $(document).ready(function () {
+    $('#button').click(function () {
+      var files = $('#fileInput').prop('files')[0];
+      var filename = "new_" + files.name;
+      var fd = new FormData();
+      fd.append('file', files);
+      var contentType = files.type;
+      $.get('/generatepresignedurl?fileName=' + filename + '&type=' + contentType, function (signedUrl) {
+        $.ajax({
+          url: signedUrl,
+          type: 'PUT',
+          dataType: 'html',
+          processData: false,
+          headers: { 'Content-Type': contentType },
+          crossDomain: true,
+          data: files
+        }).done(function (data, textStatus, error) {
+          $(".new_url").attr("src", 'https://prc391-bucket.s3-ap-southeast-1.amazonaws.com/' + filename);
+        }).fail(function (jqXHR, textStatus, errorThrown) {
+          alert("Error!");
+        });
+      });
+    });
+  });
+</script>
+
+</html>
